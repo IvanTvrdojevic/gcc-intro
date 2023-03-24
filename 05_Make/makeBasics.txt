@@ -1,0 +1,462 @@
+# SOURCE
+# https://makefiletutorial.com/#first-functions
+
+
+
+# ******************************************************************************************************************************
+# ******************************************************************************************************************************
+# ____________________________________________________________BASICS____________________________________________________________
+
+#blah: blah.o
+#	cc blah.o -o blah # Runs third
+#
+#blah.o: blah.c
+#	cc -c blah.c -o blah.o # Runs second
+#
+## Typically blah.c would already exist, but I want to limit any additional required files
+#blah.c:
+#	echo "int main() { return 0; }" > blah.c # Runs first
+	
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#some_file: other_file
+#	echo "This will always run, and runs second"
+#	touch some_file
+#
+#other_file:
+#	echo "This will always run, and runs first"
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#some_file: 
+#	echo "This will always run, and runs second"
+#	touch some_file
+#
+#clean:
+#	rm -f some_file
+
+
+
+# ******************************************************************************************************************************
+# ******************************************************************************************************************************
+# __________________________________________________________VARIABLES___________________________________________________________
+
+#files := file1 file2
+#some_file: $(files)
+#	echo "Look at this variable: " $(files)
+#	touch some_file
+#
+#file1:
+#	touch file1
+#file2:
+#	touch file2
+#
+#clean:
+#	rm -f file1 file2 some_file
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+## Recursive variable. This will print "later" below
+#one = one ${later_variable}
+## Simply expanded variable. This will not print "later" below
+#two := two ${later_variable}
+#
+#later_variable = later
+#
+#all: 
+#	echo $(one)
+#	echo $(two)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#one = hello
+#one ?= will not be set
+#two ?= will be set
+#
+#all: 
+#	echo $(one)
+#	echo $(two)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#with_spaces = hello   # with_spaces has many spaces after "hello"
+#after = $(with_spaces)there
+#
+#nullstring =
+#space = $(nullstring) # Make a variable with a single space.
+#
+#all: 
+#	echo "$(after)"
+#	echo start"$(space)"end
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+## Overrides command line arguments
+#override option_one = did_override
+## Does not override command line arguments
+#option_two = not_override
+#all: 
+#	echo $(option_one)
+#	echo $(option_two)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#all: one = cool
+#
+#all: 
+#	echo one is defined: $(one)
+#
+#other:
+#	echo one is nothing: $(one)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#%.c: one = cool
+#
+#blah.c: 
+#	echo one is defined: $(one)
+#
+#other:
+#	echo one is nothing: $(one)
+
+
+
+# ******************************************************************************************************************************
+# ******************************************************************************************************************************
+# ____________________________________________________________RULES_____________________________________________________________
+
+#all: one two three
+#
+#one:
+#	touch one
+#two:
+#	touch two
+#three:
+#	touch three
+#
+#clean:
+#	rm -f one two three
+#
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#thing_wrong := *.o # Don't do this! '*' will not get expanded
+#thing_right := $(wildcard *.o)
+#
+#all: one two three four
+#
+## Fails, because $(thing_wrong) is the string "*.o"
+#one: $(thing_wrong)
+#
+## Stays as *.o if there are no files that match this pattern :(
+#two: *.o 
+#
+## Works as you would expect! In this case, it does nothing.
+#three: $(thing_right)
+#
+## Same as rule three
+#four: $(wildcard *.o)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#hey: one two
+#	# Outputs "hey", since this is the target name
+#	echo $@
+#
+#	# Outputs all prerequisites newer than the target
+#	echo $?
+#
+#	# Outputs all prerequisites
+#	echo $^
+#
+#	touch hey
+#
+#one:
+#	touch one
+#
+#two:
+#	touch two
+#
+#clean:
+#	rm -f hey one two
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#Implicit rules 
+#Compiling a C program: n.o is made automatically from n.c with a command of the form $(CC) -c $(CPPFLAGS) $(CFLAGS) $^ -o $@
+#Compiling a C++ program: n.o is made automatically from n.cc or n.cpp with a command of the form $(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
+#Linking a single object file: n is made automatically from n.o by running the command $(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+#CC = gcc # Flag for implicit rules
+#CFLAGS = -g # Flag for implicit rules. Turn on debug info
+
+# Implicit rule #1: blah is built via the C linker implicit rule
+# Implicit rule #2: blah.o is built via the C compilation implicit rule, because blah.c exists
+
+#blah: blah.o
+#
+#blah.c:
+#	echo "int main() { return 0; }" > blah.c
+#
+#clean:
+#	rm -f blah*
+
+#objects = foo.o bar.o all.o
+#all: $(objects)
+
+# These files compile via implicit rules
+#foo.o: foo.c
+#bar.o: bar.c
+#all.o: all.c
+#
+#all.c:
+#	echo "int main() { return 0; }" > all.c
+#
+#%.c:
+#	touch $@
+#
+#clean:
+#	rm -f *.c *.o all
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+# Here's the more efficient way, using a static pattern rule:
+
+#objects = foo.o bar.o all.o
+#all: $(objects)
+
+# These files compile via implicit rules
+# Syntax - targets ...: target-pattern: prereq-patterns ...
+# In the case of the first target, foo.o, the target-pattern matches foo.o and sets the "stem" to be "foo".
+# It then replaces the '%' in prereq-patterns with that stem
+#
+#$(objects): %.o: %.c
+#
+#all.c:
+#	echo "int main() { return 0; }" > all.c
+#
+#%.c:
+#	touch $@
+#
+#clean:
+#	rm -f *.c *.o all
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#$(filter pattern...,text)
+#Select words in text that match one of the pattern words.
+
+# obj_files = foo.result bar.o lose.o
+# src_files = foo.raw bar.c lose.c
+# 
+# all: $(obj_files)
+# # Note: PHONY is important here. Without it, implicit rules will try to build the executable "all", since the prereqs are ".o" files.
+# .PHONY: all 
+# 
+# # Ex 1: .o files depend on .c files. Though we don't actually make the .o file.
+# $(filter %.o,$(obj_files)): %.o: %.c
+# 	echo "target: $@ prereq: $<"
+# 
+# # Ex 2: .result files depend on .raw files. Though we don't actually make the .result file.
+# $(filter %.result,$(obj_files)): %.result: %.raw
+# 	echo "target: $@ prereq: $<" 
+# 
+# %.c %.raw:
+# 	touch $@
+# 
+# clean:
+# 	rm -f $(src_files)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#objects = lose.o bar.o
+#source = lose.c bar.c
+## Define a pattern rule that compiles every .c file into a .o file
+#$(objects) : %.o : %.c
+#	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+#
+#clean:
+#	rm -f $(source) $(objects) 
+
+
+
+# ******************************************************************************************************************************
+# ******************************************************************************************************************************
+# __________________________________________________________COMMANDS____________________________________________________________
+
+#all: 
+#	cd ..
+#	# The cd above does not affect this line, because each command is effectively run in a new shell
+#	echo `pwd`
+#
+#	# This cd command affects the next because they are on the same line
+#	cd ..;echo `pwd`
+#
+#	# Same as above
+#	cd ..; \
+#	echo `pwd`
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#SHELL=/bin/bash
+#
+#cool:
+#	echo "Hello from bash"
+#
+#make_var = I am a make variable
+#all:
+#	# Same as running "sh_var='I am a shell variable'; echo $sh_var" in the shell
+#	sh_var='I am a shell variable'; echo $$sh_var
+#
+#	# Same as running "echo I am a make variable" in the shell
+#	echo $(make_var)
+
+#one:
+#	# This error will be printed but ignored, and make will continue to run
+#	-false
+#	touch one
+#
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#new_contents = "hello:\n\ttouch inside_file"
+#all:
+#	mkdir -p subdir
+#	printf $(new_contents) | sed -e 's/^ //' > subdir/makefile
+#	cd subdir && $(MAKE)
+#
+#clean:
+#	rm -rf subdir
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+# Run this with "export shell_env_var='I am an environment variable'; make"
+#all:
+#	# Print out the Shell variable
+#	echo $$shell_env_var
+#
+#	# Print out the Make variable
+#	echo $(shell_env_var)
+
+#shell_env_var=Shell env var, created inside of Make
+#export shell_env_var
+#all:
+#	echo $(shell_env_var)
+#	echo $$shell_env_var
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#new_contents = "hello:\n\techo \$$(cooly)"
+#
+#all:
+#	mkdir -p subdir
+#	printf $(new_contents) | sed -e 's/^ //' > subdir/makefile
+#	@echo "---MAKEFILE CONTENTS---"
+#	@cd subdir && cat makefile
+#	@echo "---END MAKEFILE CONTENTS---"
+#	cd subdir && $(MAKE)
+#
+## Note that variables and exports. They are set/affected globally.
+#cooly = "The subdirectory can see me!"
+#export cooly
+## This would nullify the line above: unexport cooly
+#
+#clean:
+#	rm -rf subdir
+
+#all: 
+#	@echo $(shell ls -la) # Very ugly because the newlines are gone!
+
+
+# ******************************************************************************************************************************
+# ******************************************************************************************************************************
+# __________________________________________________________FUNCTIONS___________________________________________________________
+
+#all: 
+#	@echo "This make line will not be printed"
+#	echo "But this will"
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#bar =
+#foo = $(bar)
+#
+#all:
+## Search for the "-i" flag. MAKEFLAGS is just a list of single characters, one per flag. So look for "i" in this case.
+#ifneq (,$(findstring i, $(MAKEFLAGS)))
+#	echo "i was passed to MAKEFLAGS"
+#endif
+
+#comma := ,
+#empty:=
+#space := $(empty) $(empty)
+#foo := a b c
+#bar := $(subst $(space),$(comma),$(foo))
+#
+#all: 
+#	@echo $(bar)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#Do NOT include spaces in the arguments after the first. That will be seen as part of the string.
+#comma := ,
+#empty:=
+#space := $(empty) $(empty)
+#foo := a b c
+#bar := $(subst $(space), $(comma) , $(foo))
+#
+#all: 
+#	# Output is ", a , b , c". Notice the spaces introduced
+#	@echo $(bar)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#foo := a.o b.o l.a c.o
+#one := $(patsubst %.o,%.c,$(foo))
+## This is a shorthand for the above
+#two := $(foo:%.o=%.c)
+## This is the suffix-only shorthand, and is also equivalent to the above.
+#three := $(foo:.o=.c)
+#
+#all:
+#	echo $(one)
+#	echo $(two)
+#	echo $(three)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#foo := who are you
+## For each "word" in foo, output that same word with an exclamation after
+#bar := $(foreach wrd,$(foo),$(wrd)!)
+#
+#all:
+#	# Output is "who! are! you!"
+#	@echo $(bar)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#foo := $(if this-is-not-empty,then!,else!)
+#empty :=
+#bar := $(if $(empty),then!,else!)
+#
+#all:
+#	@echo $(foo)
+#	@echo $(bar)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+#sweet_new_fn = Variable Name: $(0) First: $(1) Second: $(2) Empty Variable: $(3)
+#
+#all:
+#	# Outputs "Variable Name: sweet_new_fn First: go Second: tigers Empty Variable:"
+#	@echo $(call sweet_new_fn, go, tigers)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+
+
+# ******************************************************************************************************************************
+# ******************************************************************************************************************************
+# ____________________________________________________________OTHER_____________________________________________________________
+
+
+

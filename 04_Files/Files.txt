@@ -1,0 +1,33 @@
+Object files (3 types, ELF - executable and Linkable File)
+- relocatable: non-executable, only compiled, needs to be linked
+- executable: linked, ready to execute
+- shared object: shared library, not executable
+  the dynamic linker links into it when the executable file needs it
+
+ELF
+- ELF files are divided into Segments and Sections  
+  Segments
+   - used at runtime -> its valid to have an elf with only segments
+   - defined by a Program Header structure which is specified in the ELF header
+
+  Sections  
+   - used at linktime -> its valid to have an object file with only sections
+
+
+PIE/NO PIE files (Position Independent executable)
+  - executable binaries made entierly from position independent code (PIC)
+  - by default gcc compiles into PIE files -> the binary can be loaded into any memory addres 
+    - that is why when we run the file command it will say that the file is a shared object 
+    - a bit misleading because its still executable
+        -> on new versions it says pie executable instead of shared object
+    - gcc with the --no-pie option will compile into an executable file
+
+Commands
+  - file // shows info about a file
+  - readelf -h // shows ELF header info 
+  - readelf --segments // lists all segments in a binary
+  - readelf --sections // lists all sections in a binary
+  - readelf -a file | grep Shared // lists all shared objects that need to be linked
+  - ---------||----------  interpreter // shows which linker will the binary will be expecting
+  - gcc input -o output -save-temps // saves every temporary file from every compilation stage
+

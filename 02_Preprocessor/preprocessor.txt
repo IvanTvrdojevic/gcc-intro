@@ -1,0 +1,37 @@
+Preprocessor
+
+- transforms the file to get it ready for compilation
+- deals with: #include, #define (macros), comments, #ifndef (conditionals)
+
+#ifndef
+- if a header file is included twice it will be processed twice which is highly likely to produce errors and if not it is a 
+  waste of time
+
+/* File foo.  */
+#ifndef FILE_FOO_SEEN
+#define FILE_FOO_SEEN
+
+the entire file
+
+#endif /* !FILE_FOO_SEEN */
+
+-> this will prevent that
+- this construct is commonly known as a wrapper #ifndef. When the header is included again, the conditional will be false, because FILE_FOO_SEEN is defined. 
+  The preprocessor will skip over the entire contents of the file, and the compiler will not see it twice.
+- if FILE_FOO_SEEN is not defined it will be defined and the next time that this file is included the preprocessor will see that FILE_FOO_SEEN is defined
+  and it will skip the wrapped code
+
+Path
+- if "" is used to include, then the preprocessor looks for the file first in the source directory and then in directories specified with iquote
+  and then it will "turn into" <>
+- if <> is used to include, then the preprocessor looks for the file only in the standard system files and directories specified with the -I flag
+  
+- https://commandlinefanatic.com/cgi-bin/showarticle.cgi?article=art026
+
+Gcc preprocessor Flags
+- 
+
+Command 
+- cpp
+Flags
+- -I -v -iquote

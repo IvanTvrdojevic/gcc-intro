@@ -1,0 +1,34 @@
+Here are the explanations of the tests written to analyse what does the preprocessor do and how does it do it
+
+----------- test1.h and test1.c -----------
+test1.h and test1.c are used to see how the preprocessor includes one file into another, also we can
+see that even though test1.c itself does not include stdio.h we can still use its fucntions, that is
+because we are including test.h in which we have included stdio.h 
+
+----------- test2.h, test22.h and test2.c -----------
+test2.h is included in test22.h and both of them are included in test2.c which means that test2.h will be
+included twice in test2.c, this can cause errors and if it doesnt then it will needlesly cost time 
+adding #ifndef prevents this
+-> when including test22.h in test2.c, test22.h will first include test2.h into test22.h and then it will include
+   that into test2.c
+   because test2.h was already included in test22.h the #ifndef statement will be false when test2.c tries to 
+   include it again, that means the preprocessor will skip the code wrapped in #ifndef #endif
+
+-> when including test2.h in test2.c first test2.h will be included right away but when test2.c tries to then include
+   test22.h, test22.h will not include test2.h into itself because the #ifndef statement will be false and instead just
+   the code in test22.h will be included into test2.c
+--> this means that in the test2.c file the order of code will be the same no mather which header we include first
+
+
+----------- test3.h, test33.h dir/test33.h test3.c -----------
+- -Idir flag adds dir only to the < > search path, but " " will still find it by calling < > 
+- -iquotedir flag adds dir to the " " path so " " wont need to call < > because it will find it on its own
+- "" will first look in th current directory and then in the dir specified by -iquote, because in after running
+  cpp -iquotedir test3.c a = 1, which means that it found test33.h before dir/test33.h and then stopped looking
+  
+----------- test4.c -----------  
+- -D is a compile time flag for gcc
+- gcc -DTEST input -o output defines TEST which means that the #ifdef TEST block will be processed and #ifndef TEST would be skipped
+
+----------- test5.c -----------  
+- testing compile time optimization flags

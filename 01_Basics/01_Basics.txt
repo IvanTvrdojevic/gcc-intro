@@ -1,0 +1,22 @@
+- Only source files are passed to the compiler (header files arent)
+- Source files are opened only once, header fies can be oppened multiple times
+
+Preprocessor
+- expands macros and include files in source code (#include #define)
+- cpp source.c source.i
+
+Compiler 
+- expanded source code is compiled into assembly language
+- gcc -S source.i
+
+Assembly 
+- assembly code is compiled into an object file with machine code that os readable 
+  by a specific processor architecture
+- as source.s -o source.o
+
+Linker
+- links object files together into a single object file 
+- links symbols from other objects and external liraries together
+  to create a single object file
+-> symbol: a reference to a component (function/global var) in an object
+- ld

@@ -1,0 +1,38 @@
+CC = gcc
+INCDIRS = -IHeaders
+LIBDIRS = -LObj
+OPT = -O0
+CFLAGS = -Wall -Wextra -g $(OPT)
+
+LIBSOURCES = Src/source_1.c Src/source_2.c
+LIBOBJECTS = Obj/source_1.o Obj/source_2.o
+LIB = Obj/lib.a
+
+SOURCE = main.c
+OBJECT = main.o
+BINARY = main
+
+all: $(BINARY)
+
+$(BINARY): $(OBJECT) $(LIB)
+	$(CC) $^ $(CFLAGS) $(LIBDIRS) -o $@  
+
+$(OBJECT): $(SOURCE)
+	$(CC) $^ $(CFLAGS) $(INCDIRS) -c -o $@	
+
+$(LIB): $(LIBOBJECTS)
+	ar rcs $@ $^	
+
+$(LIBOBJECTS): $(LIBSOURCES)
+	$(CC) $^ $(CFLAGS) $(INCDIR) -c -o $@	
+
+
+
+
+
+#SOURCEDIR := ./Src
+#HEADERDIR := ./Headers
+#OBJDIR := ./Obj
+
+#SOURCES := $(shell find $(SOURCEDIR) -name '*.c')
+#OBJECTS := $(addprefix $(OBJDIR)/,$(SOURCES:%.c=%.o))

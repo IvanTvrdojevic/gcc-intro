@@ -1,0 +1,22 @@
+Linker
+
+Dynamic linking
+- desired function/data exists inside a shared object (included library)
+  before runtime symbols are replaced by a jump instruction (pointer) to the first instruction of the real implementation 
+  at runtime the dynamic linker will (using the pointer) find the implementation of the function
+
+
+Static linking
+- Symbols from external libraries are compiled into the final object
+
+Binding
+- After the program is executed the process has shared objects in its virtual memory
+ Lazy
+  - The dynamic linker will load the shared object in memory when it comes up to the first symbol that needs
+    to be resolved
+
+ Immediate
+  - The dynamic linker loads the shared object into memory as soon as the process has stared, after loading
+    it will immeadiately start resolving symbols
+
+-> pitaj miju jos
